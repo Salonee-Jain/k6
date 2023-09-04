@@ -10,7 +10,7 @@ export let options = {
     // }
 };
 
-const baseUrl = 'http://localhost';
+const baseUrl = 'https://localhost';
 let headers = { 'Content-Type': 'application/json' }
 let XAccessToken;
 let customerId;

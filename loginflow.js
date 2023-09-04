@@ -13,7 +13,7 @@ export let options = {
     }
 };
 const mobileNumber =  generateRandomMobileNumber();
-const baseUrl = 'http://localhost:3002';
+const baseUrl = 'https://antara-dev.in';
 let headers = { 'Content-Type': 'application/json' };
 const sentPayload = JSON.stringify({
     mobile: mobileNumber
@@ -38,6 +38,7 @@ export default function () {
     const verifyOtp = http.post(`${baseUrl}/users/v1/public/verify-otp`,verifyPayload, {headers});
     check(verifyOtp, {
         'otp verified': (res) => { 
+            // console.log(res.status)
             XAccessToken = res.headers['X-Access-Token'];
             headers = { 'Content-Type': 'application/json', 'X-Access-Token': XAccessToken }
             return res.status === 201}
