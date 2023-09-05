@@ -8,8 +8,8 @@ import {
 } from "./helper.js";
 
 export let options = {
-    vus: 1,
-    iterations: 1,
+    vus: 10,
+    iterations: 10,
     duration: "1m",
     // rps: 100,
     thresholds: {
@@ -46,7 +46,6 @@ export default function () {
     );
     check(sendOtpResponse, {
         "otp sent": (res) => {
-            console.log(res.status);
             return res.status === 201;
         },
     });
@@ -93,7 +92,6 @@ export default function () {
     );
     check(previousAppointmentsResponse, {
         "previous appointments endpoint status is 200": (res) => {
-            console.log(res.status);
             return res.status === 200;
         },
     });

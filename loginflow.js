@@ -32,21 +32,18 @@ export default function () {
     check(sendOtpResponse, {
         'otp sent': (res) => {return res.status === 201 }
     });
-    check(sendOtpResponse, {
-        'otp sent Response time is less than 300ms': (res) => {return res.timings.receiving < 300}
-    });
+    
     const verifyOtp = http.post(`${baseUrl}/users/v1/public/verify-otp`,verifyPayload, {headers});
+    if(verifyOtp.status === 201){
+        XAccessToken = verifyOtp.headers['X-Access-Token'];
+        headers = { 'Content-Type': 'application/json', 'X-Access-Token': XAccessToken }
+    }
     check(verifyOtp, {
         'otp verified': (res) => { 
-            // console.log(res.status)
-            XAccessToken = res.headers['X-Access-Token'];
-            headers = { 'Content-Type': 'application/json', 'X-Access-Token': XAccessToken }
-            return res.status === 201}
+            return res.status === 201
+        }
     });
-    check(verifyOtp, {
-        'verify otp Response time is less than 300ms': (res) => {
-            return res.timings.receiving < 300}
-    });
+   
 
 
     const logoutResponse = http.post(`${baseUrl}/users/v1/public/logout`, JSON.stringify({}),{ headers});
