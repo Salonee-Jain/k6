@@ -4,8 +4,25 @@ import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-    vus: 100, 
-    iterations: 100,
+    stages: [
+        { duration: '1m', target: 100 }, // Ramp up to 100 users over 1 minute
+        { duration: '5m', target: 100 }, // Stay at 100 users for 5 minutes
+        { duration: '2m', target: 500 }, // Ramp up to 500 users over 2 minutes
+        { duration: '10m', target: 500 }, // Stay at 500 users for 10 minutes
+        { duration: '2m', target: 1000 }, // Ramp up to 1,000 users over 2 minutes
+        { duration: '10m', target: 1000 }, // Stay at 1,000 users for 10 minutes
+        { duration: '2m', target: 5000 }, // Ramp up to 5,000 users over 2 minutes
+        { duration: '10m', target: 5000 }, // Stay at 5,000 users for 10 minutes
+        { duration: '2m', target: 10000 }, // Ramp up to 10,000 users over 2 minutes
+        { duration: '10m', target: 10000 }, // Stay at 10,000 users for 10 minutes
+        { duration: '2m', target: 5000 }, // Ramp down to 5,000 users over 2 minutes
+        { duration: '10m', target: 5000 }, // Stay at 5,000 users for 10 minutes
+        { duration: '2m', target: 1000 }, // Ramp down to 1,000 users over 2 minutes
+        { duration: '10m', target: 1000 }, // Stay at 1,000 users for 10 minutes
+        { duration: '2m', target: 500 }, // Ramp down to 500 users over 2 minutes
+        { duration: '10m', target: 500 }, // Stay at 500 users for 10 minutes
+        { duration: '1m', target: 0 }, // Ramp down to 0 users over 1 minute
+      ],
     duration: '10s',
     rps: 100,
      thresholds: {
