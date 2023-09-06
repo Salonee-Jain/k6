@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { sleep, check, group } from 'k6';
 import encoding from 'k6/encoding';
 import { FormData } from 'https://jslib.k6.io/formdata/0.0.2/index.js';
-import { generateRandomIndex } from './helper.js';
+import { generateRandomIndex } from '../helper.js';
 
 export let options = {
     vus: 1,

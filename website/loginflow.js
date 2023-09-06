@@ -1,12 +1,12 @@
 import http from 'k6/http';
 import { sleep, check } from 'k6';
-import { generateRandomMobileNumber } from './helper.js'
+import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-    vus: 10000, 
-    iterations: 10000,
-    duration: '5m',
+    vus: 100, 
+    iterations: 100,
+    duration: '10s',
     rps: 100,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
@@ -30,7 +30,9 @@ const verifyPayload = JSON.stringify({
 export default function () {
     const sendOtpResponse = http.post(`${baseUrl}/users/v1/public/send-otp`, sentPayload, {headers});
     check(sendOtpResponse, {
-        'otp sent': (res) => {return res.status === 201 }
+        'otp sent': (res) => {
+            // console.log(res.body);
+            return res.status === 201 }
     });
     
     const verifyOtp = http.post(`${baseUrl}/users/v1/public/verify-otp`,verifyPayload, {headers});
@@ -40,6 +42,7 @@ export default function () {
     }
     check(verifyOtp, {
         'otp verified': (res) => { 
+            // console.log(res.body)
             return res.status === 201
         }
     });

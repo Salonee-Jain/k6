@@ -4,7 +4,7 @@ import {
     generateRandomMobileNumber,
     addDayToDate,
     generateRandomIndex,
-} from "./helper.js";
+} from "../helper.js";
 
 export let options = {
     vus: 100,

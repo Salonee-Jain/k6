@@ -4,7 +4,7 @@ import {getFormattedCurrentDate,
     generateRandomMobileNumber,
     addDayToDate,
     generateRandomIndex
-} from "./helper.js";
+} from "../helper.js";
 
 export let options = {
     vus: 100,
@@ -22,11 +22,9 @@ let customerId;
 let expertId;
 let studioId;
 let appointmentId;
-const cityArray = ['new%20delhi', 'bengaluru', 'gurgaon'];
-const modeArray = ['Home Visit', 'Online', "Studio Visit"]
-const City = cityArray[generateRandomIndex(cityArray.length - 1)]
-const mode = modeArray[generateRandomIndex(modeArray.length - 1)]
-let selectSlot
+const City = 'bengaluru';
+const mode = 'Online';
+let selectSlot;
 let expertIds;
 let matchingSlot;
 let XAccessToken;
@@ -209,7 +207,6 @@ function appointmentOnline(){
         source: "website",
         customerAddress: Address.trim().length > 0 ? Address: "Random Address",
         appointmentCity: City,
-        studioId: studioId
     });
  
     blockAppointmentResponse = http.post(

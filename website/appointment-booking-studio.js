@@ -5,7 +5,7 @@ import {
     addMinutesToTime,
     addDayToDate,
     getSessionFromTime,
-} from "./helper.js";
+} from "../helper.js";
 
 export let options = {
     vus: 1,

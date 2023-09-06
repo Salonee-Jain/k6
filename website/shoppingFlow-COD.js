@@ -1,6 +1,6 @@
 import http from "k6/http";
 import { sleep, check } from "k6";
-import { generateRandomIndex } from "./helper.js";
+import { generateRandomIndex } from "../helper.js";
 
 export let options = {
     vus: 1,
