@@ -49,36 +49,6 @@ export default function () {
         check(verifyOtp, {
             'OTP Verified - Status is 200': (res) => res.status === 201,
         });
-
-        // let mobileNumberToChange = '8362387858'
-        // let sendChangeMobileOtpResponse
-        // while (true) {
-        //     sendChangeMobileOtpResponse = http.post(`${baseUrl}:3002/users/v1/profile/send-change-mobile-otp`, JSON.stringify({
-        //         "mobileNumber": mobileNumberToChange
-        //     }), { headers });
-        //     if (sendChangeMobileOtpResponse.status === 400) {
-        //         mobileNumberToChange = '6362387858';
-        //         continue;
-        //     }else if (sendChangeMobileOtpResponse.status === 201){
-        //         break;
-        //     }
-        // }
-        // check(sendChangeMobileOtpResponse, {
-        //     'Change Mobile OTP Sent - Status is 201': (res) => res.status === 201,
-        // });
-
-        // const verifyChangeMobileOtpResponse = http.post(`${baseUrl}:3002/users/v1/profile/verify-change-mobile-otp`, 
-        // JSON.stringify({
-        //     "mobileNumber":  mobileNumberToChange,
-        //     "otp": "123456"
-        //   }), 
-        // { headers });
-        // console.log(verifyChangeMobileOtpResponse.body)
-        // check(verifyChangeMobileOtpResponse, {
-        //     'Verify Change Mobile OTP - Status is 201': (res) => res.status === 201,
-        // });
-
-
     });
 
     group('Personal Details', function () {
