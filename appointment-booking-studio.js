@@ -67,14 +67,16 @@ export default function () {
         verifyPayload,
         { headers, responseType: "text" }
     );
+    if (verifyOtp.json() !== undefined | null && Object.keys(verifyOtp.json()).length > 0) {
+        customerId = verifyOtp.json().user.customerId;
+        XAccessToken = verifyOtp.headers["X-Access-Token"];
+        headers = {
+            "Content-Type": "application/json",
+            "X-Access-Token": XAccessToken,
+        };
+    }
     check(verifyOtp, {
         "otp verified": (res) => {
-            customerId = res.json().user.customerId;
-            XAccessToken = res.headers["X-Access-Token"];
-            headers = {
-                "Content-Type": "application/json",
-                "X-Access-Token": XAccessToken,
-            };
             return res.status === 201;
         },
     });
@@ -224,14 +226,14 @@ export default function () {
         },
     });
     // ----------------------------------------------------------------
-   
+
     const blockAppointmentPayload = JSON.stringify({
         expertId: expertId,
         customerId: customerId,
         appointmentType: "Expert Counselling",
         appointmentMode: mode,
         dt: dt,
-        fromDt:`${dt} ${fromTimeToCheck}`,
+        fromDt: `${dt} ${fromTimeToCheck}`,
         toDt: `${dt} ${toTimeToCheck}`,
         source: "website",
         customerAddress: " ",
@@ -239,7 +241,7 @@ export default function () {
         studioId: studioId
     });
     console.log(blockAppointmentPayload)
- 
+
     blockAppointmentResponse = http.post(
         `${baseUrl}:3010/appointment/v1/customer/block`,
         blockAppointmentPayload,
@@ -250,7 +252,7 @@ export default function () {
         "Block Appointment endpoint status is 201": (res) => {
             console.log(res.json());
             appointmentId = res.json().appointmentId;
-            console.log('appointmentId',appointmentId);
+            console.log('appointmentId', appointmentId);
             return res.status === 201;
         },
         "Block Appointment Response time is less than 300ms": (res) => {
@@ -258,7 +260,7 @@ export default function () {
         },
     });
 
-  
+
     const userProfilePayload = JSON.stringify({
         age: 41,
         gender: null,
@@ -288,23 +290,23 @@ export default function () {
     });
 
 
-//     // const releaseAppointmentResponse = http.post(`${baseUrl}:3010/appointment/v1/customer/release/${appointmentId}`, { headers });
+    //     // const releaseAppointmentResponse = http.post(`${baseUrl}:3010/appointment/v1/customer/release/${appointmentId}`, { headers });
 
-//     // check(releaseAppointmentResponse, {
-//     //     'Release Appointment endpoint status is 201': (res) => {
-//     //         console.log(res.body)
-//     //         return res.status === 201;
-//     //     },
-//     // });
+    //     // check(releaseAppointmentResponse, {
+    //     //     'Release Appointment endpoint status is 201': (res) => {
+    //     //         console.log(res.body)
+    //     //         return res.status === 201;
+    //     //     },
+    //     // });
 
-//     // check(releaseAppointmentResponse, {
-//     //     'Release Appointment Response time is less than 300ms': (res) => {
-//     //         return res.timings.receiving < 300;
-//     //     },
-//     // });
-//     //------------------------------------------------------------------------------
+    //     // check(releaseAppointmentResponse, {
+    //     //     'Release Appointment Response time is less than 300ms': (res) => {
+    //     //         return res.timings.receiving < 300;
+    //     //     },
+    //     // });
+    //     //------------------------------------------------------------------------------
 
-//     //----------------------------------------------------------------
+    //     //----------------------------------------------------------------
     const scheduleAppointmentPayload = JSON.stringify({
         "expertId": expertId,
         "customerId": customerId,
@@ -312,12 +314,12 @@ export default function () {
         "appointmentMode": mode,
         "appointmentId": appointmentId,
         "dt": dt,
-        "fromDt": convertDatetime(`${dt} ${fromTimeToCheck}`),
-        "toDt": convertDatetime(`${dt} ${addMinutesToTime(fromTimeToCheck, 30)}`),
+        "fromDt": `${dt} ${fromTimeToCheck}`,
+        "toDt": `${dt} ${toTimeToCheck}`,
         "source": "website",
         "customerAddress": " ",
         "appointmentCity": City,
-       "studioId": studioId,
+        "studioId": studioId,
     });
 
     const scheduleAppointmentResponse = http.post(`${baseUrl}:3010/appointment/v1/customer/schedule`, scheduleAppointmentPayload, { headers });
@@ -337,9 +339,9 @@ export default function () {
     });
 
     //------------------------------------------------------------------------------
-    const logoutResponse = http.post(`${baseUrl}/users/v1/public/logout`, JSON.stringify({}),{ headers});
+    const logoutResponse = http.post(`${baseUrl}/users/v1/public/logout`, JSON.stringify({}), { headers });
     check(logoutResponse, {
-        'Logout endpoint status is 201': (res) => {return res.status === 201}
+        'Logout endpoint status is 201': (res) => { return res.status === 201 }
     });
     sleep(1);
 }

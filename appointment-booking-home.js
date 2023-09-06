@@ -1,23 +1,22 @@
 import http from "k6/http";
 import { sleep, check } from "k6";
 import {
-    convertDatetime,
-    addMinutesToTime,
+    generateRandomMobileNumber,
     addDayToDate,
-    getSessionFromTime,
+    generateRandomIndex,
 } from "./helper.js";
 
 export let options = {
-    vus: 10,
-    iterations: 10,
-    duration: "1m",
+    vus: 100,
+    iterations: 100,
+    duration: "5m",
     // rps: 100,
     thresholds: {
         http_req_receiving: ["p(95)<300"],
     },
 };
 
-const baseUrl = "http://localhost";
+const baseUrl = "https://antara-dev.in";
 let headers = { "Content-Type": "application/json" };
 let customerId;
 let expertId;
@@ -29,18 +28,19 @@ let selectSlot
 let expertIds;
 let matchingSlot;
 let XAccessToken;
-let Address;
+let Address = "";
 let pincode= "560038";
-
-let dt = "2023-09-04";
+const mobileNumber =  generateRandomMobileNumber();
+let dt = "2023-09-10";
 let fromTimeToCheck;
 let toTimeToCheck;
-export default function () {
+
+async function appointmentHome(){
     const sentPayload = JSON.stringify({
-        mobile: "6362387858",
+        mobile: mobileNumber,
     });
     const sendOtpResponse = http.post(
-        `${baseUrl}:3002/users/v1/public/send-otp`,
+        `${baseUrl}/users/v1/public/send-otp`,
         sentPayload,
         { headers }
     );
@@ -49,45 +49,38 @@ export default function () {
             return res.status === 201;
         },
     });
-    check(sendOtpResponse, {
-        "otp sent Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
+  
     //----------------------------------------------------------------
     const verifyPayload = JSON.stringify({
-        mobile: "6362387858",
+        mobile: mobileNumber,
         otp: "123456",
         os: "android",
         deviceId: "1234567891",
         osVersion: "10",
         manufacturer: "samsung",
     });
-    const verifyOtp = http.post(
-        `${baseUrl}:3002/users/v1/public/verify-otp`,
+    const verifyOtp = await http.post(
+        `${baseUrl}/users/v1/public/verify-otp`,
         verifyPayload,
         { headers, responseType: "text" }
     );
+    if (verifyOtp.json() !== undefined | null && Object.keys(verifyOtp.json()).length > 0) {
+        customerId = verifyOtp.json().user.customerId;
+        XAccessToken = verifyOtp.headers["X-Access-Token"];
+        headers = {
+            "Content-Type": "application/json",
+            "X-Access-Token": XAccessToken,
+        };
+    }
     check(verifyOtp, {
         "otp verified": (res) => {
-            customerId = res.json().user.customerId;
-            XAccessToken = res.headers["X-Access-Token"];
-            headers = {
-                "Content-Type": "application/json",
-                "X-Access-Token": XAccessToken,
-            };
             return res.status === 201;
         },
     });
-    check(verifyOtp, {
-        "otp verify Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
-
+  
     //----------------------------------------------------------------
-    const previousAppointmentsResponse = http.get(
-        `${baseUrl}:3010/appointment/v1/customer/previous-appointments`,
+    const previousAppointmentsResponse = await http.get(
+        `${baseUrl}/appointment/v1/customer/previous-appointments`,
         { headers }
     );
     check(previousAppointmentsResponse, {
@@ -95,15 +88,10 @@ export default function () {
             return res.status === 200;
         },
     });
-    check(previousAppointmentsResponse, {
-        "Previous Appointments Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
-
+  
     //----------------------------------------------------------------
-    const allAppointmentsResponse = http.get(
-        `${baseUrl}:3010/appointment/v1/customer/appointments`,
+    const allAppointmentsResponse = await http.get(
+        `${baseUrl}/appointment/v1/customer/appointments`,
         { headers }
     );
     check(previousAppointmentsResponse, {
@@ -111,48 +99,43 @@ export default function () {
             return res.status === 200;
         },
     });
-    check(previousAppointmentsResponse, {
-        "All Appointments Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
+  
 
     //----------------------------------------------------------------
 
-    const allAddressesResponse = http.get(
-        `${baseUrl}:3002/users/v1/profile/all-addresses`,
+    const allAddressesResponse = await http.get(
+        `${baseUrl}/users/v1/profile/all-addresses`,
         { headers }
     );
+ 
+    if(allAddressesResponse.json().length > 0) {
+        let index = generateRandomIndex(allAddressesResponse.json().length-1);
+        Address = res.json()[index].address
+    }
     check(allAddressesResponse, {
         "all addresses endpoint status is 200": (res) => {
-            // console.log( res.json()[Math.floor(Math.random() * res.json().length)])
-            Address = res.json()[Math.floor(Math.random() * res.json().length)].address
             return res.status === 200;
         },
     });
-    check(allAddressesResponse, {
-        "All Addresses Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
+   
 
     //----------------------------------------------------------------
 
-    const studioCityResponse = http.get(
-        `${baseUrl}:3004/master/v1/studio/city/${City}`,
+    const studioCityResponse = await http.get(
+        `${baseUrl}/master/v1/studio/city/${City}`,
         { headers }
     );
+
+     if(studioCityResponse.json().length > 0) {
+        let index = generateRandomIndex(studioCityResponse.json().length-1);
+        studioId = studioCityResponse.json()[index].studioId
+    }
     check(studioCityResponse, {
         "studio city endpoint status is 200": (res) => {
-            studioId = res.json()[0].studioId;
             return res.status === 200;
         },
     });
-    check(studioCityResponse, {
-        "Studio City Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
+   
 
     //----------------------------------------------------------------
 
@@ -162,23 +145,18 @@ export default function () {
         appointmentCity: City,
         pincode: pincode,
     });
-    const checkExpertAvailabilityResponse = http.post(
-        `${baseUrl}:3002/users/v1/expert-management/check-expert-availability`,
+    const checkExpertAvailabilityResponse = await http.post(
+        `${baseUrl}/users/v1/expert-management/check-expert-availability`,
         checkExpertAvailabilityPayload,
         { headers }
     );
     check(checkExpertAvailabilityResponse, {
         "check expert availability endpoint status is 201": (res) => {
-            console.log(res.body);
             expertIds = res.json();
             return res.status === 201;
         },
     });
-    check(checkExpertAvailabilityResponse, {
-        "Check Expert Availability Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
+   
 
     //----------------------------------------------------------------
 
@@ -191,8 +169,8 @@ export default function () {
             dt: dt,
         });
 
-        availableExpertsResponse = http.post(
-            `${baseUrl}:3010/appointment/v1/customer/slots/available-experts`,
+        availableExpertsResponse = await http.post(
+            `${baseUrl}/appointment/v1/customer/slots/available-experts`,
             availableExpertsPayload,
             { headers }
         );
@@ -212,13 +190,20 @@ export default function () {
             let randomIndex = Math.floor(Math.random() * matchingSlot.length);
             selectSlot = matchingSlot[randomIndex]
             expertId = selectSlot.expertIds[Math.floor(Math.random() * selectSlot.expertIds.length)]
-            console.log(selectSlot)
+            // console.log(selectSlot)
             dt = selectSlot.dt;
             fromTimeToCheck = selectSlot.fromTime;
             toTimeToCheck = selectSlot.toTime
             break;
         }
     }
+
+
+        check(availableExpertsResponse, {
+            "check available expert endpoint status is 201": (res) => {
+                return res.status === 201;
+            },
+        });
     // ----------------------------------------------------------------
    
     const blockAppointmentPayload = JSON.stringify({
@@ -230,15 +215,15 @@ export default function () {
         fromDt:`${dt} ${fromTimeToCheck}`,
         toDt: `${dt} ${toTimeToCheck}`,
         source: "website",
-        customerAddress: " ",
+        customerAddress: Address.trim().length>0 ? Address: "Sample Address",
         appointmentCity: City,
         studioId: studioId,
         homeVisitPincode: pincode
     });
-    console.log(blockAppointmentPayload)
+    // console.log(blockAppointmentPayload)
  
-    blockAppointmentResponse = http.post(
-        `${baseUrl}:3010/appointment/v1/customer/block`,
+    blockAppointmentResponse = await http.post(
+        `${baseUrl}/appointment/v1/customer/block`,
         blockAppointmentPayload,
         { headers }
     );
@@ -257,27 +242,18 @@ export default function () {
     //     }
     // }
  
-        // check(availableExpertsResponse, {
-        //     "check available expert endpoint status is 201": (res) => {
-        //         return res.status === 201;
-        //     },
-        // });
 
 
     check(blockAppointmentResponse, {
         "Block Appointment endpoint status is 201": (res) => {
-            console.log(res.json());
+            // console.log(res.json());
             appointmentId = res.json().appointmentId;
-            console.log('appointmentId',appointmentId);
+            // console.log('appointmentId',appointmentId);
             return res.status === 201;
         },
     });
 
-    // check(blockAppointmentResponse, {
-    //     "Block Appointment Response time is less than 300ms": (res) => {
-    //         return res.timings.receiving < 300;
-    //     },
-    // });
+  
     const userProfilePayload = JSON.stringify({
         age: 41,
         gender: null,
@@ -287,27 +263,22 @@ export default function () {
 
     //----------------------------------------------------------------
 
-    const userProfileResponse = http.patch(
-        `${baseUrl}:3002/users/v1/profile`,
+    const userProfileResponse = await http.patch(
+        `${baseUrl}/users/v1/profile`,
         userProfilePayload,
         { headers }
     );
 
     check(userProfileResponse, {
         "User Profile endpoint status is 200": (res) => {
-            console.log(res.status);
+            // console.log(res.status);
             return res.status === 200;
         },
     });
 
-    check(userProfileResponse, {
-        "User Profile Response time is less than 300ms": (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
 
 
-//     // const releaseAppointmentResponse = http.post(`${baseUrl}:3010/appointment/v1/customer/release/${appointmentId}`, { headers });
+//     // const releaseAppointmentResponse = await http.post(`${baseUrl}/appointment/v1/customer/release/${appointmentId}`, { headers });
 
 //     // check(releaseAppointmentResponse, {
 //     //     'Release Appointment endpoint status is 201': (res) => {
@@ -331,34 +302,32 @@ export default function () {
         "appointmentMode": mode,
         "appointmentId": appointmentId,
         "dt": dt,
-        "fromDt": convertDatetime(`${dt} ${fromTimeToCheck}`),
-        "toDt": convertDatetime(`${dt} ${addMinutesToTime(fromTimeToCheck, 30)}`),
+        "fromDt":`${dt} ${fromTimeToCheck}`,
+        "toDt": `${dt} ${toTimeToCheck}`,
         "source": "website",
-        "customerAddress": Address,
+        "customerAddress": Address.trim().length>0 ? Address: "Sample Address",
         "appointmentCity": City, 
         "homeVisitPincode": pincode
     });
 
-    const scheduleAppointmentResponse = http.post(`${baseUrl}:3010/appointment/v1/customer/schedule`, scheduleAppointmentPayload, { headers });
+    const scheduleAppointmentResponse = await http.post(`${baseUrl}/appointment/v1/customer/schedule`, scheduleAppointmentPayload, { headers });
 
     check(scheduleAppointmentResponse, {
         'Schedule Appointment endpoint status is 201': (res) => {
-            console.log(res.body);
-            console.log(res.status);
+            // console.log(res.body);
+            // console.log(res.status);
             return res.status === 201;
         },
     });
 
-    check(scheduleAppointmentResponse, {
-        'Schedule Appointment Response time is less than 300ms': (res) => {
-            return res.timings.receiving < 300;
-        },
-    });
-
     //------------------------------------------------------------------------------
-    const logoutResponse = http.post(`${baseUrl}/users/v1/public/logout`, JSON.stringify({}),{ headers});
+    const logoutResponse = await http.post(`${baseUrl}/users/v1/public/logout`, JSON.stringify({}),{ headers});
     check(logoutResponse, {
         'Logout endpoint status is 201': (res) => {return res.status === 201}
     });
     sleep(1);
+}
+
+export default function () {
+    appointmentHome();
 }

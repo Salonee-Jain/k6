@@ -58,25 +58,16 @@ export function addMinutesToTime(inputTime, minutesToAdd) {
     return date.toISOString().split('T')[0];
 }
 
-const TimeMapper = {
-    'Morning' : ['09:30 AM','01:00 PM'],
-    'Afternoon' : ['01:00 PM','05:00 PM'],
-    'Evening' : ['05:00 PM','06:00 PM']
-}
-export function getSessionFromTime(time) {
 
-    for (const session in TimeMapper) {
+export function getFormattedCurrentDate() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+    return formattedDate;
+  }
 
-        if (
-          
-            TimeMapper[session][0] <= time &&
-            time < TimeMapper[session][1]
-        ) {
-            return session;
-        }
-    }
-    return null;
-}
  export function generateRandomIndex(length){
     return Math.round(Math.random() * length)
  }
