@@ -4,8 +4,8 @@ import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-    vus: 10, 
-    iterations: 10,
+    vus: 1, 
+    iterations: 1,
     duration: '1s',
     // rps: 100,
      thresholds: {

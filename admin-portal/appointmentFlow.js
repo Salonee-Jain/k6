@@ -63,7 +63,7 @@ function loginFlow() {
     }
     check(verifyOtp, {
         'Verify Otp status is 201': (res) => {
-            console.log(res.body)
+            //console.log(res.body)
             return res.status === 201
         }
     });
@@ -91,26 +91,26 @@ function appointmentFlow() {
 
 
 
-    // function getAllAppointments(offset = 0, limit = 10, status = '', fromDt = '', toDt = '') {
-    //     const queryParams = {
-    //         offset,
-    //         limit,
-    //         status,
-    //         sortBy: 'date',
-    //         reverse: true,
-    //         fromDt,
-    //         toDt,
-    //     };
+    function getAllAppointments(offset = 0, limit = 10, status = '', fromDt = '', toDt = '') {
+        const queryParams = {
+            offset,
+            limit,
+            status,
+            sortBy: 'date',
+            reverse: true,
+            fromDt,
+            toDt,
+        };
 
-    //     const url = `${baseUrl}:3010/appointment/v1/admin-management/all-appointments?` +
-    //         Object.entries(queryParams)
-    //             .filter(([_, value]) => value !== '') // Exclude empty parameters
-    //             .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-    //             .join('&');
+        const url = `${baseUrl}:3010/appointment/v1/admin-management/all-appointments?` +
+            Object.entries(queryParams)
+                .filter(([_, value]) => value !== '') // Exclude empty parameters
+                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+                .join('&');
 
-    //     const response = http.get(url, { headers });
-    //     return response;
-    // }
+        const response = http.get(url, { headers });
+        return response;
+    }
 
 
     // let allAppointmentsResponse1 = getAllAppointments();
@@ -123,24 +123,26 @@ function appointmentFlow() {
     //     'All Appointments Variation 2 status is 200': (r) => r.status === 200,
     // });
 
-    // // let ScheduledAllAppointmentsResponse = getAllAppointments(0, 10, 'Scheduled', '', '');
-    // // if (ScheduledAllAppointmentsResponse.json().data.length > 0) {
-    // //     let index = generateRandomIndex(ScheduledAllAppointmentsResponse.data.length - 1);
-    // //     appointmentId = ScheduledAllAppointmentsResponse.data[index].appointmentId;
-    // // }
-    // // check(ScheduledAllAppointmentsResponse, {
-    // //     'All Appointments Variation 3 status is 200': (r) => r.status === 200,
-    // // });
+    let ScheduledAllAppointmentsResponse = getAllAppointments(0, 10, 'Scheduled', '', '');
+   
+    if (ScheduledAllAppointmentsResponse.json().data.length > 0) {
+        let index = generateRandomIndex(ScheduledAllAppointmentsResponse.json().data.length - 1);
+        appointmentId = ScheduledAllAppointmentsResponse.json().data[index].appointmentId;
+    }
+    check(ScheduledAllAppointmentsResponse, {
+        'All Appointments Variation 3 status is 200': (r) => r.status === 200,
+    });
 
 
-    // let sendReminderResponse = http.post(
-    //     `${baseUrl}:3010/appointment/v1/admin-management/reminder/${appointmentId}`,
-    //     { headers }
-    // );
+    let sendReminderResponse = http.post(
+        `${baseUrl}:3010/appointment/v1/admin-management/reminder/${appointmentId}`,
+        { headers }
+    );
+    console.log(sendReminderResponse.body)
 
-    // check(sendReminderResponse, {
-    //     'Send Reminder status is 200': (r) => r.status === 200,
-    // });
+    check(sendReminderResponse, {
+        'Send Reminder status is 200': (r) => r.status === 200,
+    });
 
 
     // let cancelAppointmentResponse = http.post(
