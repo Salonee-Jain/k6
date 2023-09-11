@@ -11,6 +11,7 @@ export let options = {
         { duration: '10m', target: 500 }, // Stay at 500 users for 10 minutes
         { duration: '10m', target: 1000 }, // Stay at 1,000 users for 10 minutes
         { duration: '2m', target: 5000 }, // Ramp up to 5,000 users over 2 minutes
+        { duration: '10m', target: 10000 }, 
         { duration: '10m', target: 1000 }, // Stay at 1,000 users for 10 minutes
         { duration: '2m', target: 500 }, // Ramp down to 500 users over 2 minutes
         { duration: '10m', target: 500 }, // Stay at 500 users for 10 minutes
