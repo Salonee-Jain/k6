@@ -5,7 +5,7 @@ import { generateRandomMobileNumber } from '../helper.js'
 const totalIterations = 10000;
 export let options = {
      vus: 10000, // Number of virtual users
-    duration: '30m',
+    duration: '5m',
     iterations: 10000,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
