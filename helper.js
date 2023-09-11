@@ -71,3 +71,47 @@ export function getFormattedCurrentDate() {
  export function generateRandomIndex(length){
     return Math.round(Math.random() * length)
  }
+
+ export function getCurrentMonth() {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    return currentMonth;
+  }
+
+
+  export function convertDateFormat(inputDate, inputTime) {
+    let [time, meridian] = inputTime.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+  
+    const inputDateTime = new Date(inputDate);
+  
+    if (meridian === "PM" && hours !== 12) {
+      hours += 12;
+    }
+  
+    inputDateTime.setHours(hours, minutes);
+  
+    const year = inputDateTime.getFullYear();
+    const month = String(inputDateTime.getMonth() + 1).padStart(2, "0");
+    const day = String(inputDateTime.getDate()).padStart(2, "0");
+    const formattedHours = String(inputDateTime.getHours()).padStart(2, "0");
+    const formattedMinutes = String(inputDateTime.getMinutes()).padStart(2, "0");
+  
+    const outputDateTime = `${year}-${month}-${day} ${formattedHours}:${formattedMinutes}`;
+  
+    return outputDateTime;
+  
+  }
+  
+
+  export function extractCityStateAndPincode(value) {
+    const cityComponent = value.find(component => component.types.includes("locality"));
+    const stateComponent = value.find(component => component.types.includes("administrative_area_level_1"));
+    const pincodeComponent = value.find(component => component.types.includes("postal_code"));
+
+    const city = cityComponent ? cityComponent.long_name : "Bengaluru";
+    const state = stateComponent ? stateComponent.long_name : "Karnataka";
+    const pincode = pincodeComponent ? pincodeComponent.long_name : "560038";
+
+    return { city, state, pincode };
+}
