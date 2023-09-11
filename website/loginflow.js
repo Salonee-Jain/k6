@@ -19,7 +19,6 @@ export let options = {
         { duration: '3m', target: 500 }, // Stay at 500 users for 3 minutes
         { duration: '1m', target: 0 }, // Ramp down to 0 users over 1 minute
     ],
-      iterations: 10000,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
     }
