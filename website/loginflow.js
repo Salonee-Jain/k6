@@ -21,13 +21,14 @@ export default function () {
     const sentPayload = JSON.stringify({
         mobile: mobileNumber
     })
-    //console.log( '----------------------------------------------------------------', mobileNumber)
+
     const sendOtpResponse = http.post(`${baseUrl}/users/v1/public/send-otp`, sentPayload, {headers});
-    console.log(sendOtpResponse.body);
     check(sendOtpResponse, {
         'otp sent': (res) => {
             return res.status === 201 }
     });
+
+    console.log(sendOtpResponse.body)
     
     const verifyPayload = JSON.stringify({
         "mobile":mobileNumber,
@@ -42,7 +43,7 @@ export default function () {
         XAccessToken = verifyOtp.headers['X-Access-Token'];
         headers = { 'Content-Type': 'application/json', 'X-Access-Token': XAccessToken }
     }
-    //console.log(verifyOtp.body);
+    console.log(verifyOtp.body);
     check(verifyOtp, {
         'otp verified': (res) => { 
             return res.status === 201
@@ -55,6 +56,6 @@ export default function () {
     check(logoutResponse, {
         'Logout endpoint status is 201': (res) => {return res.status === 201}
     });
-    // console.log(logoutResponse.body);
+    console.log(logoutResponse.body);
     sleep(1);
 }
