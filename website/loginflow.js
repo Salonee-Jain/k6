@@ -21,7 +21,7 @@ export default function () {
     const sentPayload = JSON.stringify({
         mobile: mobileNumber
     })
-    console.log( '----------------------------------------------------------------', mobileNumber)
+    //console.log( '----------------------------------------------------------------', mobileNumber)
     const sendOtpResponse = http.post(`${baseUrl}/users/v1/public/send-otp`, sentPayload, {headers});
     console.log(sendOtpResponse.body);
     check(sendOtpResponse, {
