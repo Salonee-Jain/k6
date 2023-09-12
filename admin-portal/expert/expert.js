@@ -1,7 +1,10 @@
 import http from "k6/http";
 import { sleep, check } from "k6";
-import { generateRandomIndex, generateRandomMobileNumber } from "../../helper.js";
-import { FormData } from 'https://jslib.k6.io/formdata/0.0.2/index.js';
+import {
+    generateRandomIndex,
+    generateRandomMobileNumber,
+} from "../../helper.js";
+
 
 export let options = {
     vus: 4,
@@ -15,28 +18,9 @@ export let options = {
 const baseUrl = "http://localhost";
 let headers = { "Content-Type": "application/json" };
 let XAccessToken;
-let stateId;
-let searchName = "Mandanna";
-let customerId;
-let mode = 'Online'
-let conditionIds;
-let search = 'or';
-let pincode;
-let city;
-let state;
-let placesId;
-let Address;
-let mobileNumber;
-let addressId;
-let customerName;
-let expertId
+let expertId;
 let expertName;
-let slot;
-let appointmentId;
-let studioId;
-let email;
 let roleId;
-
 
 function loginFlow() {
     let verifyPasswordPayload = JSON.stringify({
@@ -86,70 +70,110 @@ function loginFlow() {
     });
 }
 
-export function setup() {
-    loginFlow();
-    const rolesResponse = http.get(`${baseUrl}/master/v1/roles?offset=0&limit=100`, { headers });
+function expertCreationFlow() {
+    const rolesResponse = http.get(
+        `${baseUrl}/master/v1/roles?offset=0&limit=100`,
+        { headers }
+    );
     if (rolesResponse.status === 200) {
-        roleId = rolesResponse.json().data.filter(r => r.name == 'Expert')[0].roleId
+        roleId = rolesResponse
+            .json()
+            .data.filter((r) => r.name == "Expert")[0].roleId;
     } else {
-        roleId = '82579c04-6229-4862-805a-fcde6926e48f'
+        roleId = "82579c04-6229-4862-805a-fcde6926e48f";
     }
     check(rolesResponse, {
         "Roles Status is 200": (r) => r.status === 200,
     });
     const expertCreationPayload = JSON.stringify({
-        name: 'Test experts',
-        appointmentModes: ['Online'],
-        employeeId: '09',
-        email: 'f@gmails.com',
-        bioData: 'ff',
+        name: "Test experts",
+        appointmentModes: ["Online"],
+        employeeId: "09",
+        email: "f@gmails.com",
+        bioData: "ff",
         consultationFee: 1000,
         yearsOfExperience: 2,
-        roleId: '82579c04-6229-4862-805a-fcde6926e48f',
-        conditionIds: [
-            '97bf065d-dc27-42d0-8abc-9ca552a653b6',
-        ],
+        roleId: roleId,
+        conditionIds: ["97bf065d-dc27-42d0-8abc-9ca552a653b6"],
         mobile: generateRandomMobileNumber(),
     });
 
-    const expertCreationResponse = http.post(`${baseUrl}/users/v1/user-management`, expertCreationPayload, { headers });
+    const expertCreationResponse = http.post(
+        `${baseUrl}/users/v1/user-management`,
+        expertCreationPayload,
+        { headers }
+    );
     if (expertCreationResponse.json() !== undefined) {
         expertId = expertCreationResponse.json().userId;
-    } 
-    console.log(expertCreationResponse.body)
-    check(expertCreationResponse, {
-        'Expert create status is 201 Created': (r) => r.status === 201,
-    });
-
-
-    const studioResponse = http.get(`${baseUrl}/master/v1/studio?offset=0&limit=100`, { headers });
-    if (studioResponse.json().data.length > 0) {
-        let index = generateRandomIndex(studioResponse.json().data.length - 1)
-        studioId = studioResponse.json().data[index].studioId;
-
+        expertName = expertCreationResponse.json().name;
     }
-    check(studioResponse, {
-        "Studio Status is 200": (r) => r.status === 200,
+    console.log(expertCreationResponse.body);
+    check(expertCreationResponse, {
+        "Expert create status is 201 Created": (r) => r.status === 201,
     });
-    console.log(expertId)
-    return {expertId, studioId, headers}
+}
+function expertEditFlow() {
+    const patchPayload = JSON.stringify({
+        name: expertName,
+    });
+
+    const patchResponse = http.patch(
+        `${baseUrl}/users/v1/user-management/${expertId}`,
+        patchPayload,
+        { headers }
+    );
+    check(patchResponse, {
+        "Patch Expert Management Status is 200": (r) => r.status === 200,
+    });
+}
+
+function expertDeleteFlow() {
+    const deleteResponse = http.del(
+        `${baseUrl}/users/v1/user-management/${expertId}`,
+        JSON.stringify({}),
+        { headers }
+    );
+    console.log(deleteResponse.body);
+    check(deleteResponse, {
+        "Delete Expert Management Status is 200": (r) => r.status === 200,
+    });
+}
+
+export default function () {
+    loginFlow();
+    expertCreationFlow();
+    expertEditFlow();
+    expertDeleteFlow();
+
 }
 
 
-export default function (data) {
-   const {expertId, studioId, headers} = data;
-   const patchPayload = JSON.stringify({
-    name: expertName,
-});
 
-const patchResponse = http.patch(`${baseUrl}/users/v1/user-management/${expertId}`, patchPayload, { headers });
-check(patchResponse, {
-    "Patch Expert Management Status is 200": (r) => r.status === 200,
-});
 
-const deleteResponse = http.del(`${baseUrl}/users/v1/user-management/${expertId}`, JSON.stringify({}), { headers });
-console.log(deleteResponse.body)
-check(deleteResponse, {
-    "Delete Expert Management Status is 200": (r) => r.status === 200,
-});
-}
+
+
+
+
+
+
+
+
+
+
+
+
+// export function setup() {
+//     loginFlow();
+
+//     // const studioResponse = http.get(`${baseUrl}/master/v1/studio?offset=0&limit=100`, { headers });
+//     // if (studioResponse.json().data.length > 0) {
+//     //     let index = generateRandomIndex(studioResponse.json().data.length - 1)
+//     //     studioId = studioResponse.json().data[index].studioId;
+
+//     // }
+//     // check(studioResponse, {
+//     //     "Studio Status is 200": (r) => r.status === 200,
+//     // });
+//     // console.log(expertId)
+//     // return {expertId, studioId, headers}
+// }

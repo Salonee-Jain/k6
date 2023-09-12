@@ -17,7 +17,6 @@ let headers = { "Content-Type": "application/json" };
 let XAccessToken;
 let stateId;
 let searchName = "Mandanna";
-let customerId;
 let RescheduleMode = ["Online", "Studio Visit", "Home Visit"][generateRandomIndex(2)];
 let conditionIds;
 let searchPlaces = 'or';
@@ -28,11 +27,14 @@ let placesId;
 let Address;
 let mobileNumber;
 let addressId;
+let customerId;
+let customerNo;
 const fileData = open('./download.pdf', 'b');
 
 
 export default function () {
     loginFlow();
+    customerCreation();
     profileFlow();
 }
 function loginFlow() {
@@ -83,6 +85,38 @@ function loginFlow() {
         },
     });
 }
+function customerCreation(){
+    const conditionsResponse = http.get(`${baseUrl}/master/v1/condition`, { headers });
+    if (conditionsResponse.json().data.length > 0) {
+        let index = generateRandomIndex(conditionsResponse.json().data.length - 1);
+        conditionIds = conditionsResponse.json().data[index].conditionId;
+    }
+    const customerDocumentResponse = http.get(`${baseUrl}/users/v1/customer-management/document/all-documents?customerId=${customerId}&documentType=Health+Record`, { headers });
+    check(customerDocumentResponse, {
+        "Customer Document Status is 200": (r) => r.status === 200,
+    });
+
+    let createCustomerPayload = JSON.stringify({
+        name: 'Tester',
+        mobile: '7334098836',
+        conditionIds: ['54db19df-496a-488f-a13c-fb4032bd6793'],
+        age: 23,
+      })
+
+    let createCustomerResponse = http.post(
+        '/users/v1/customer-management',
+        createCustomerPayload,
+        {headers}
+        
+      );
+    
+      check(createCustomerResponse, {
+        'Create Customer Status is 201': (res) => res.status === 201,
+      });
+    
+      customerId = createCustomerResponse.json().customerId;
+      customerNo = createCustomerResponse.json().customerNo;
+}
 
 function profileFlow() {
     const recentsResponse = http.get(`${baseUrl}/users/v1/customer-management/recents`, { headers });
@@ -90,7 +124,7 @@ function profileFlow() {
         "Recents Status is 200": (r) => r.status === 200,
     });
 
-    const customerSearchResponse = http.get(`${baseUrl}/users/v1/customer-management?offset=0&limit=15&search=${searchName}`, { headers });
+    const customerSearchResponse = http.get(`${baseUrl}/users/v1/customer-management?offset=0&limit=15&search=${customerNo}`, { headers });
     if (customerSearchResponse.json().data.length > 0) {
         let index = generateRandomIndex(customerSearchResponse.json().data.length - 1)
         customerId = customerSearchResponse.json().data[index].customerId

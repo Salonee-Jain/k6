@@ -115,3 +115,12 @@ export function getFormattedCurrentDate() {
 
     return { city, state, pincode };
 }
+
+export function getCurrentDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // Adding 1 to month as it's zero-based
+  const day = String(today.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+  return formattedDate;
+}

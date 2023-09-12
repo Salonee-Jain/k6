@@ -1,5 +1,7 @@
 import http from "k6/http";
 import { sleep, check } from "k6";
+import { generateRandomIndex, extractCityStateAndPincode, convertDateFormat, getCurrentMonth } from "../../helper.js";
+import { FormData } from 'https://jslib.k6.io/formdata/0.0.2/index.js';
 
 export let options = {
     vus: 1,
@@ -10,37 +12,23 @@ export let options = {
         http_req_receiving: ["p(95)<300"],
     },
 };
+
 const baseUrl = "http://localhost";
 let headers = { "Content-Type": "application/json" };
 let XAccessToken;
-let searchName = "Mandanna";
-let customerId;
-let mode = 'Online'
-let conditionIds;
-let search = 'or';
-let pincode = '560038';
-let cityId;
-let stateId;
-let city;
-let state;
-let placesId;
-let Address;
-let mobileNumber;
-let addressId;
-let customerName;
-let expertId
-let expertName;
-let slot;
-let appointmentId;
 let studioId;
 let studioName;
-let email;
+let pincode;
+let cityId;
+let stateId;
 
 export default function () {
-    loginFlow();
-    studioCreationFlow();
+    loginFlow()
+    studioCreationFlow()
+    studioEditFlow()
+    studioDeleteFlow()
+    sleep(1);
 }
-
 function loginFlow() {
     let verifyPasswordPayload = JSON.stringify({
         email: "varun.v@gida.io",
@@ -89,22 +77,19 @@ function loginFlow() {
     });
 }
 
-
-function studioCreationFlow(){
-   
-
+function studioCreationFlow() {
     let getLocationResponse = http.get(`${baseUrl}/master/v1/location/pincode?pincode=${pincode}`, { headers });
-    if(getLocationResponse.status == 400){
+    if (getLocationResponse.status == 400) {
         pincode = '560038'
         cityId = '0b3a1608-a588-415b-853d-8051d7e67768'
         stateId = '6230c7c4-24ee-4017-99d9-b34ea81a4c22'
-    }else{
+    } else {
         pincode = getLocationResponse.json().pincode
         cityId = getLocationResponse.json().city.cityId
         stateId = getLocationResponse.json().city.stateId
         check(getLocationResponse, { 'GET Location Status is 200': (r) => r.status === 200 });
     }
-  
+
 
     const postStudioPayload = {
         "name": "studio",
@@ -118,7 +103,29 @@ function studioCreationFlow(){
         "closingTime": "07:00 PM"
     };
     let postStudioResponse = http.post(`${baseUrl}/master/v1/studio`, JSON.stringify(postStudioPayload), { headers });
+    console.log(postStudioResponse.json())
+    if (postStudioResponse.json() !== undefined) {
+        studioId = postStudioResponse.json().studioId;
+        studioName = postStudioResponse.json().name;
+    }
     check(postStudioResponse, { 'POST Studio Status is 201': (r) => r.status === 201 });
 
+}
+
+function studioEditFlow() {
+
+    let getStudioResponse = http.get(`${baseUrl}/master/v1/studio?offset=0&limit=10`, { headers });
+    check(getStudioResponse, { 'GET Studio Status is 200': (r) => r.status === 200 });
+
+    const editStudioPayload = JSON.stringify({
+        "name": studioName,
+    });
+    let patchStudioResponse = http.patch(`${baseUrl}/master/v1/studio/${studioId}`, editStudioPayload, { headers });
+    check(patchStudioResponse, { 'PATCH Studio Status is 200': (r) => r.status === 200 });
+}
+
+function studioDeleteFlow() {
+    let deleteStudioResponse = http.del(`${baseUrl}/master/v1/studio/${studioId}`, JSON.stringify({}), { headers });
+    check(deleteStudioResponse, { 'Delete Studio Status is 200': (r) => r.status === 200 });
 
 }

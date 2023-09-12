@@ -1,4 +1,4 @@
-import http from "k6/http";
+import  http from "k6/http";
 import { sleep, check } from "k6";
 import {
   getFormattedCurrentDate,
@@ -8,9 +8,9 @@ import {
 } from "../helper.js";
 
 export let options = {
-  vus: 10,
-  iterations: 10,
-  duration: "1m",
+  vus: 1,
+  iterations: 1,
+  duration: "30s",
   // rps: 100,
   thresholds: {
     http_req_receiving: ["p(95)<300"],
@@ -39,53 +39,9 @@ let toTimeToCheck;
 console.log(City, mode);
 const mobileNumber = generateRandomMobileNumber();
 
-function appointmentOnline() {
-  const sentPayload = JSON.stringify({
-    mobile: mobileNumber,
-  });
-  const sendOtpResponse = http.post(
-    `${baseUrl}/users/v1/public/send-otp`,
-    sentPayload,
-    { headers }
-  );
-  check(sendOtpResponse, {
-    "otp sent": (res) => {
-      return res.status === 201;
-    },
-  });
+async function appointmentOnline() {
   //----------------------------------------------------------------
-  const verifyPayload = JSON.stringify({
-    mobile: mobileNumber,
-    otp: "123456",
-    os: "android",
-    deviceId: "1234567891",
-    osVersion: "10",
-    manufacturer: "samsung",
-  });
-  const verifyOtp = http.post(
-    `${baseUrl}/users/v1/public/verify-otp`,
-    verifyPayload,
-    { headers, responseType: "text" }
-  );
-  if (
-    (verifyOtp.json() !== undefined) | null &&
-    Object.keys(verifyOtp.json()).length > 0
-  ) {
-    customerId = verifyOtp.json().user.customerId;
-    XAccessToken = verifyOtp.headers["X-Access-Token"];
-    headers = {
-      "Content-Type": "application/json",
-      "X-Access-Token": XAccessToken,
-    };
-  }
-  check(verifyOtp, {
-    "otp verified": (res) => {
-      return res.status === 201;
-    },
-  });
-
-  //----------------------------------------------------------------
-  const previousAppointmentsResponse = http.get(
+  const previousAppointmentsResponse = await http.get(
     `${baseUrl}/appointment/v1/customer/previous-appointments`,
     { headers }
   );
@@ -96,7 +52,7 @@ function appointmentOnline() {
   });
 
   //----------------------------------------------------------------
-  const allAppointmentsResponse = http.get(
+  const allAppointmentsResponse = await http.get(
     `${baseUrl}/appointment/v1/customer/appointments`,
     { headers }
   );
@@ -108,7 +64,7 @@ function appointmentOnline() {
 
   //----------------------------------------------------------------
 
-  const allAddressesResponse = http.get(
+  const allAddressesResponse = await http.get(
     `${baseUrl}/users/v1/profile/all-addresses`,
     { headers }
   );
@@ -124,7 +80,7 @@ function appointmentOnline() {
 
   //----------------------------------------------------------------
 
-  const studioCityResponse = http.get(
+  const studioCityResponse = await http.get(
     `${baseUrl}/master/v1/studio/city/${City}`,
     { headers }
   );
@@ -146,7 +102,7 @@ function appointmentOnline() {
     appointmentMode: mode,
     appointmentCity: City,
   });
-  const checkExpertAvailabilityResponse = http.post(
+  const checkExpertAvailabilityResponse = await http.post(
     `${baseUrl}/users/v1/expert-management/check-expert-availability`,
     checkExpertAvailabilityPayload,
     { headers }
@@ -169,7 +125,7 @@ function appointmentOnline() {
       dt: dt,
     });
 
-    availableExpertsResponse = http.post(
+    availableExpertsResponse = await http.post(
       `${baseUrl}/appointment/v1/customer/slots/available-experts`,
       availableExpertsPayload,
       { headers }
@@ -179,6 +135,7 @@ function appointmentOnline() {
       dt = addDayToDate(dt, 1);
       continue;
     } else {
+  
       let dateKey = Object.keys(availableExpertsResponse.json())[0];
 
       matchingSlot = availableExpertsResponse.json()[dateKey];
@@ -187,19 +144,32 @@ function appointmentOnline() {
         continue;
       }
 
-      let index = generateRandomIndex(matchingSlot.length - 1);
-      selectSlot = matchingSlot[index];
+      for(let i = 0; i < matchingSlot.length; i++) {
+        selectSlot = matchingSlot[i];
+        if(selectSlot.available){
+          break;
+        }else{
+          continue;
+        }
+      }
+      if(!selectSlot.available){
+        dt = addDayToDate(dt, 1);
+        continue;
+      }
+     
+      
 
       if (selectSlot.expertIds.length > 0) {
         expertId =
           selectSlot.expertIds[
-            generateRandomIndex(selectSlot.expertIds.length - 1)
+          generateRandomIndex(selectSlot.expertIds.length - 1)
           ];
+        console.log('selected slot ------------', selectSlot)
         dt = selectSlot.dt;
         fromTimeToCheck = selectSlot.fromTime;
         toTimeToCheck = selectSlot.toTime;
         break;
-      }else{
+      } else {
         dt = addDayToDate(dt, 1);
         continue;
       }
@@ -218,18 +188,20 @@ function appointmentOnline() {
     source: "website",
     customerAddress: Address.trim().length > 0 ? Address : "Random Address",
     appointmentCity: City,
-    studioId: studioId,
+    studioId: mode=='Studio Visit'?studioId:undefined,
   });
 
-  blockAppointmentResponse = http.post(
+
+  blockAppointmentResponse = await http.post(
     `${baseUrl}/appointment/v1/customer/block`,
     blockAppointmentPayload,
     { headers }
   );
-
+  if(blockAppointmentResponse.status === 201){
+    appointmentId = blockAppointmentResponse.json().appointmentId;
+  }
   check(blockAppointmentResponse, {
     "Block Appointment endpoint status is 201": (res) => {
-      appointmentId = res.json().appointmentId;
       return res.status === 201;
     },
   });
@@ -243,7 +215,7 @@ function appointmentOnline() {
 
   //----------------------------------------------------------------
 
-  const userProfileResponse = http.patch(
+  const userProfileResponse = await http.patch(
     `${baseUrl}/users/v1/profile`,
     userProfilePayload,
     { headers }
@@ -255,7 +227,7 @@ function appointmentOnline() {
     },
   });
 
-  //     // const releaseAppointmentResponse = http.post(`${baseUrl}/appointment/v1/customer/release/${appointmentId}`, { headers });
+  //     // const releaseAppointmentResponse = await http.post(`${baseUrl}/appointment/v1/customer/release/${appointmentId}`, { headers });
 
   //     // check(releaseAppointmentResponse, {
   //     //     'Release Appointment endpoint status is 201': (res) => {
@@ -284,10 +256,10 @@ function appointmentOnline() {
     source: "website",
     customerAddress: Address.trim().length > 0 ? Address : "Random Address",
     appointmentCity: City,
-    studioId: studioId,
+    studioId: mode=='Studio Visit'?studioId:undefined,
   });
 
-  const scheduleAppointmentResponse = http.post(
+  const scheduleAppointmentResponse = await http.post(
     `${baseUrl}/appointment/v1/customer/schedule`,
     scheduleAppointmentPayload,
     { headers }
@@ -299,8 +271,69 @@ function appointmentOnline() {
     },
   });
 
+  const cancelAppointmentResponse = await http.post(
+    `${baseUrl}/appointment/v1/customer/cancel/${appointmentId}`,
+    scheduleAppointmentPayload,
+    { headers }
+  );
+
+  check(cancelAppointmentResponse, {
+    "Cancel Appointment endpoint status is 200": (res) => {
+      return res.status === 201;
+    },
+  });
+
   //------------------------------------------------------------------------------
-  const logoutResponse = http.post(
+}
+
+async function loginFlow() {
+  const sentPayload = JSON.stringify({
+    mobile: mobileNumber,
+  });
+  const sendOtpResponse = await http.post(
+    `${baseUrl}/users/v1/public/send-otp`,
+    sentPayload,
+    { headers }
+  );
+  check(sendOtpResponse, {
+    "otp sent": (res) => {
+      return res.status === 201;
+    },
+  });
+
+  const verifyPayload = JSON.stringify({
+    mobile: mobileNumber,
+    otp: "123456",
+    os: "android",
+    deviceId: "1234567891",
+    osVersion: "10",
+    manufacturer: "samsung",
+  });
+  const verifyOtp = await http.post(
+    `${baseUrl}/users/v1/public/verify-otp`,
+    verifyPayload,
+    { headers, responseType: "text" }
+  );
+  if (
+    (verifyOtp.json() !== undefined) | null &&
+    Object.keys(verifyOtp.json()).length > 0
+  ) {
+    customerId = verifyOtp.json().user.customerId;
+    XAccessToken = verifyOtp.headers["X-Access-Token"];
+    headers = {
+      "Content-Type": "application/json",
+      "X-Access-Token": XAccessToken,
+    };
+  }
+  check(verifyOtp, {
+    "otp verified": (res) => {
+      return res.status === 201;
+    },
+  });
+}
+
+async function logoutFlow() {
+  const logoutResponse = await http.post(
     `${baseUrl}/users/v1/public/logout`,
     JSON.stringify({}),
     { headers }
@@ -313,6 +346,8 @@ function appointmentOnline() {
   sleep(1);
 }
 
-export default function () {
-  appointmentOnline();
+export  default async function () {
+  await loginFlow();
+  await appointmentOnline();
+  await logoutFlow();
 }

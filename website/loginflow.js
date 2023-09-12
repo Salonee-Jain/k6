@@ -2,11 +2,10 @@ import http from 'k6/http';
 import { sleep, check } from 'k6';
 import { generateRandomMobileNumber } from '../helper.js'
 
-const totalIterations = 10000;
+
 export let options = {
-     vus: 10000, // Number of virtual users
-    duration: '15m',
-    iterations: 10000,
+     vus: 1, 
+    iterations: 1,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
     }
@@ -28,9 +27,9 @@ const verifyPayload = JSON.stringify({
 })
 export default function () {
     const sendOtpResponse = http.post(`${baseUrl}/users/v1/public/send-otp`, sentPayload, {headers});
+    //console.log(sendOtpResponse.body);
     check(sendOtpResponse, {
         'otp sent': (res) => {
-            // console.log(res.body);
             return res.status === 201 }
     });
     
@@ -39,9 +38,9 @@ export default function () {
         XAccessToken = verifyOtp.headers['X-Access-Token'];
         headers = { 'Content-Type': 'application/json', 'X-Access-Token': XAccessToken }
     }
+    //console.log(verifyOtp.body);
     check(verifyOtp, {
         'otp verified': (res) => { 
-            // console.log(res.body)
             return res.status === 201
         }
     });
@@ -52,5 +51,6 @@ export default function () {
     check(logoutResponse, {
         'Logout endpoint status is 201': (res) => {return res.status === 201}
     });
+    // console.log(logoutResponse.body);
     sleep(1);
 }

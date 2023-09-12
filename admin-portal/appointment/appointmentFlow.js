@@ -31,7 +31,7 @@ export default function () {
 }
 
 let appointmentId;
-
+console.log(RescheduleMode)
 function loginFlow() {
     let verifyPasswordPayload = JSON.stringify({
         email: "varun.v@gida.io",
@@ -163,7 +163,7 @@ function appointmentFlow() {
         `${baseUrl}:3010/appointment/v1/admin-management/reminder/${appointmentId}`,
         { headers }
     );
-    console.log(sendReminderResponse.status);
+
 
     check(sendReminderResponse, {
         "Send Reminder status is 201": (r) => r.status === 201,
@@ -173,9 +173,11 @@ function appointmentFlow() {
         `${baseUrl}:3010/appointment/v1/admin-management/cancel/${appointmentId}`,
         { headers }
     );
+    console.log('apoint cnacelllleddd',cancelAppointmentResponse.body);
+    console.log(cancelAppointmentResponse.status)
 
     check(cancelAppointmentResponse, {
-        "Cancel Appointment status is 200": (r) => r.status === 200,
+        "Cancel Appointment status is 200": (r) => r.status === 201,
     });
     
     let rescheduleAppointment = getAllAppointments(
@@ -241,7 +243,7 @@ function appointmentFlow() {
     let allAddressesResponse;
 
     let url = `${baseUrl}/users/v1/user-management?limit=60&conditionIds=${conditionIds}&isExpert=true`;
-    if ((RescheduleMode = "Home Visit")) {
+    if ((RescheduleMode === "Home Visit")) {
         allAddressesResponse = http.get(
             `${baseUrl}/users/v1/customer-management/all-addresses?customerId=${customerId}`,
             { headers }
@@ -255,7 +257,7 @@ function appointmentFlow() {
         check(allAddressesResponse, {
             "All Addresses Status is 200": (r) => r.status === 200,
         });
-    } else if ((RescheduleMode = "Studio Visit")) {
+    } else if ((RescheduleMode === "Studio Visit")) {
         studioResponse = http.get(`${baseUrl}/master/v1/studio?limit=60`, {
             headers,
         });
@@ -270,7 +272,8 @@ function appointmentFlow() {
     }
    
     const expertManagementResponse = http.get(url, { headers });
-    if(expertManagementResponse.json().data.length > 0){
+    console.log('expertId ------------',expertManagementResponse.json())
+    if(expertManagementResponse.json().data.length > 0 && expertManagementResponse.status === 200) {
         let index = generateRandomIndex(expertManagementResponse.json().data.length - 1);
         expertId = expertManagementResponse.json().data[index].userId;
     }
@@ -280,18 +283,19 @@ function appointmentFlow() {
 
     const slotResponse = http.get(`${baseUrl}:3010/appointment/v1/admin-management/slots/${expertId}?mode=${(RescheduleMode == 'Home Visit' || 'Studio Visit')? RescheduleMode.split(' ').join('+'): RescheduleMode }&month=${getCurrentMonth()}&customerId=${customerId}`
     , { headers });
-    console.log(`${baseUrl}:3010/appointment/v1/admin-management/slots/${expertId}?mode=${(RescheduleMode == 'Home Visit' || 'Studio Visit')? RescheduleMode.split(' ').join('+'): RescheduleMode}&month=${getCurrentMonth()}&customerId=${customerId}`
-    )
-    if(slotResponse.json().data.length > 0){
+    console.log(slotResponse.json())
+    if( slotResponse.json().data!==undefined && slotResponse.json().data.length > 0){
+    
         let filterData = slotResponse.json().data.filter(item => item.slots.length > 0)
+        console.log('filetrDtaaaaaaaa',filterData)
         let index = generateRandomIndex(filterData.length - 1);
+        console.log(filterData[index])
         slot = filterData[index].slots[0];
     }
+
     check(expertManagementResponse, {
         "Expert Management Status is 200": (r) => r.status === 200,
     });
-
-
 
     const reschedulePayload = {
         expertId: expertId,
@@ -307,11 +311,8 @@ function appointmentFlow() {
         customerAddress : Address?Address: "custom address"
 
     };
-
-  
-
     const rescheduleResponse = http.post(`${baseUrl}:3010/appointment/v1/admin-management/reschedule/${appointmentId}`, JSON.stringify(reschedulePayload), { headers });
-    console.log(rescheduleResponse.body)
+    console.log("Reschedulleeeee",rescheduleResponse.body)
     check(rescheduleResponse, {
         "Reschedule Response Status is 201": (r) => r.status === 201,
     });

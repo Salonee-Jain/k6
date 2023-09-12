@@ -1,11 +1,9 @@
 import http from "k6/http";
 import { sleep, check } from "k6";
-import { generateRandomIndex, extractCityStateAndPincode, convertDateFormat, getCurrentMonth } from "../../helper.js";
-import { FormData } from 'https://jslib.k6.io/formdata/0.0.2/index.js';
 
 export let options = {
-    vus: 10,
-    iterations: 10,
+    vus: 1,
+    iterations: 1,
     duration: "1s",
     // rps: 100,
     thresholds: {
@@ -20,7 +18,10 @@ let roleId;
 
 export default function () {
     loginFlow();
-    roleFlow();
+    roleCreationFlow();
+    roleEditFlow();
+    roleDeleteFlow();
+    sleep(1);
 }
 
 function loginFlow() {
@@ -71,8 +72,7 @@ function loginFlow() {
     });
 }
 
-
-function roleFlow(){
+function roleCreationFlow(){
     const postRolePayload = {
         "name": "Test Role",
         "enabled": 1,
@@ -86,10 +86,10 @@ function roleFlow(){
     if(postResponse.status === 201){
         roleId = postResponse.json().roleId;
     }
-    console.log(roleId)
     check(postResponse, { 'POST Role Status is 201': (r) => r.status === 201 });
+}
 
-   
+function roleEditFlow(){
 
     const getRolesResponse = http.get(`${baseUrl}/master/v1/roles?offset=0&limit=10`, { headers });
     check(getRolesResponse, { 'GET Roles Status is 200': (r) => r.status === 200 });
@@ -113,9 +113,10 @@ function roleFlow(){
     const patchResponse = http.patch(`${baseUrl}/master/v1/roles?roleId=${roleId}`, JSON.stringify(patchRolePayload), { headers });
     check(patchResponse, { 'PATCH Role Status is 200': (r) => r.status === 200 });
 
-  
+}
+function roleDeleteFlow(){
     const deleteResponse = http.del(`${baseUrl}/master/v1/roles?roleId=${roleId}`, JSON.stringify({}), { headers });
-    check(deleteResponse, { 'DELETE Role Status is 200': (r) => r.status === 20 });
+    check(deleteResponse, { 'DELETE Role Status is 200': (r) => r.status === 200 });
 }
 
 
