@@ -4,8 +4,8 @@ import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-     vus: 1, 
-    iterations: 1,
+     vus: 10000, 
+    iterations: 10000,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
     }
@@ -13,26 +13,30 @@ export let options = {
 const mobileNumber =  generateRandomMobileNumber();
 const baseUrl = 'https://antara-dev.in';
 let headers = { 'Content-Type': 'application/json' };
-const sentPayload = JSON.stringify({
-    mobile: mobileNumber
-})
+
 let  XAccessToken;
-const verifyPayload = JSON.stringify({
-    "mobile":mobileNumber,
-    "otp": "123456",
-    "os": "android",
-    "deviceId": "1234567891",
-    "osVersion": "10",
-    "manufacturer": "samsung"
-})
+
+
 export default function () {
+    const sentPayload = JSON.stringify({
+        mobile: mobileNumber
+    })
+    console.log( '----------------------------------------------------------------', mobileNumber)
     const sendOtpResponse = http.post(`${baseUrl}/users/v1/public/send-otp`, sentPayload, {headers});
-    //console.log(sendOtpResponse.body);
+    console.log(sendOtpResponse.body);
     check(sendOtpResponse, {
         'otp sent': (res) => {
             return res.status === 201 }
     });
     
+    const verifyPayload = JSON.stringify({
+        "mobile":mobileNumber,
+        "otp": "123456",
+        "os": "android",
+        "deviceId": "1234567891",
+        "osVersion": "10",
+        "manufacturer": "samsung"
+    })
     const verifyOtp = http.post(`${baseUrl}/users/v1/public/verify-otp`,verifyPayload, {headers});
     if(verifyOtp.status === 201){
         XAccessToken = verifyOtp.headers['X-Access-Token'];
