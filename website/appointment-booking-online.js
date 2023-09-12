@@ -5,11 +5,22 @@ import {getFormattedCurrentDate,
     addDayToDate,
     generateRandomIndex
 } from "../helper.js";
-
+const totalIterations = 10;
 export let options = {
-    vus: 100,
-    iterations: 100,
-    duration: "1m",
+    stages: [
+        { duration: '1s', target: 1 }, // Rasp up to 1 users over 1 sinute
+        { duration: '5s', target: 4 }, // Stay at 1 users for 5 sinutes
+        { duration: '2s', target: 5 }, // Rasp up to 5 users over 2 sinutes
+        { duration: '10s', target: 5 }, // Stay at 5 users for 10 sinutes
+        { duration: '10s', target: 10 }, // Stay at 1,0 users for 10 sinutes
+        { duration: '2s', target: 50 }, // Rasp up to 5,0 users over 2 sinutes
+        { duration: '10s', target: 1 }, 
+        { duration: '10s', target: 10 }, // Stay at 1,0 users for 10 sinutes
+        { duration: '2s', target: 5 }, // Rasp down to 5 users over 2 sinutes
+        { duration: '10s', target: 5 }, // Stay at 500 users for 10 sinutes
+        { duration: '1s', target: 0 }, // Ramp down to 0 users over 1 minute
+      ],
+   
     // rps: 100,
     thresholds: {
         http_req_receiving: ["p(95)<300"],
