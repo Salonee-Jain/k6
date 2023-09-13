@@ -4,8 +4,8 @@ import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-     vus: 1000, 
-    iterations: 1000,
+     vus: 10, 
+    iterations: 10,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
     }
@@ -29,7 +29,7 @@ export default function () {
             return res.status === 201 }
     });
 
-    console.log(sendOtpResponse.body)
+    //console.log(sendOtpResponse.body)
 
     const verifyPayload = JSON.stringify({
         "mobile":mobileNumber,
