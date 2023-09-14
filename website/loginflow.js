@@ -47,11 +47,10 @@ export default function () {
         XAccessToken = verifyOtp.headers['X-Access-Token'];
         headers = { 'Content-Type': 'application/json', 'X-Access-Token': XAccessToken }
     }
-    if(verifyOtp.status >= '300' && verifyOtp.status < '200'){
+    if(verifyOtp.status >= 300 && verifyOtp.status < 200 || verifyOtp.status == 503){
         console.log(verifyOtp.status)
         console.log(verifyOtp.body)
     }
-    console.log(verifyOtp.status >= 300 && verifyOtp.status < 200);
     check(verifyOtp, {
         'otp verified': (res) => { 
             return res.status === 201
