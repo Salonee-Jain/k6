@@ -50,6 +50,7 @@ export default function () {
     if(verifyOtp.status >= 300 && verifyOtp.status < 200){
         console.log(verifyOtp.body)
     }
+    console.log(verifyOtp.status);
     check(verifyOtp, {
         'otp verified': (res) => { 
             return res.status === 201
