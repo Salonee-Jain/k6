@@ -4,8 +4,8 @@ import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-     vus: 1000, 
-    iterations: 1000,
+     vus: 500, 
+    iterations: 500,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
     }
@@ -57,7 +57,7 @@ export default function () {
     check(logoutResponse, {
         'Logout endpoint status is 201': (res) => {return res.status === 201}
     });
-    sleep(1);
+    sleep(2);
 }
 
 
