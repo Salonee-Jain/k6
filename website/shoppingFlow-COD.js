@@ -11,7 +11,7 @@ export let options = {
     }
 };
 
-const baseUrl = "http://localhost";
+const baseUrl = "https://antara-dev.in";
 let search = "brace";
 let headers = { "Content-Type": "application/json" };
 let XAccessToken;
@@ -31,7 +31,7 @@ export default function () {
     });
 
     const sendOtpResponse = http.post(
-        `${baseUrl}:3002/users/v1/public/send-otp`,
+        `${baseUrl}/users/v1/public/send-otp`,
         sentPayload,
         { headers }
     );
@@ -70,14 +70,17 @@ export default function () {
     let recommendedResponse;
     if (customerId) {
         recommendedResponse = http.get(
-            `${baseUrl}:3020/catalog/v1/products/recommended?customerId=${customerId}`,
+            `${baseUrl}/catalog/v1/products/recommended?customerId=${customerId}`,
             { headers }
         );
     } else {
         recommendedResponse = http.get(
-            `${baseUrl}:3020/catalog/v1/products/recommended`,
+            `${baseUrl}/catalog/v1/products/recommended`,
             { headers }
         );
+    }
+    if(recommendedResponse.status >= 400){
+        console.log('recommendedResponse' , recommendedResponse.status);
     }
     check(recommendedResponse, {
         "recommended products endpoint status is 200": (res) => {
@@ -86,9 +89,13 @@ export default function () {
     });
 
     const productbyHandleResponse = http.get(
-        `${baseUrl}:3020/catalog/v1/products/${handle}`,
+        `${baseUrl}/catalog/v1/products/${handle}`,
         { headers }
     );
+    
+    if (productbyHandleResponse.status >= 400) {
+        console.log('productbyHandleResponse',productbyHandleResponse.status)
+    }
     if (productbyHandleResponse.status === 200) {
         productId = productbyHandleResponse.json().productId.split("/").pop();
     }
@@ -107,7 +114,7 @@ export default function () {
     // });
 
     const productResponse = http.get(
-        `${baseUrl}:3020/catalog/v1/products?search=${search}`,
+        `${baseUrl}/catalog/v1/products?search=${search}`,
         { headers }
     );
     check(productResponse, {
@@ -117,7 +124,7 @@ export default function () {
     });
 
     const catalogResponse = http.get(
-        `${baseUrl}:3020/catalog/v1/products/get-all-categories?productLimit=3&bestSeller=true`,
+        `${baseUrl}/catalog/v1/products/get-all-categories?productLimit=3&bestSeller=true`,
         { headers }
     );
     if (catalogResponse.status === 200) {
@@ -153,7 +160,7 @@ export default function () {
 
     //----------------------------------------------------------------
     function getCart() {
-        const cartResponse = http.get(`${baseUrl}:3020/catalog/v1/cart`, {
+        const cartResponse = http.get(`${baseUrl}/catalog/v1/cart`, {
             headers,
         });
         if (cartResponse.json().lineItems.length > 0) {
@@ -177,7 +184,7 @@ export default function () {
     const addToCartPayload = JSON.stringify({
         lineItems
     })
-    const addToCartResponse = http.post(`${baseUrl}:3020/catalog/v1/cart`, addToCartPayload, { headers });
+    const addToCartResponse = http.post(`${baseUrl}/catalog/v1/cart`, addToCartPayload, { headers });
     // console.log(addToCartResponse.json().lineItems)
     check(addToCartResponse, {
         'add to cart endpoint status is 201': (res) => {
@@ -196,7 +203,7 @@ export default function () {
         ],
     });
     const upadteToCartResponse = http.patch(
-        `${baseUrl}:3020/catalog/v1/cart`,
+        `${baseUrl}/catalog/v1/cart`,
         updateToCartPayload,
         { headers }
     );
@@ -213,7 +220,7 @@ export default function () {
             lineItems: [lineItemId],
         });
         const deleteCartResponse = http.del(
-            `${baseUrl}:3020/catalog/v1/cart`,
+            `${baseUrl}/catalog/v1/cart`,
             deleteToCartPayload,
             { headers }
         );
@@ -226,7 +233,7 @@ export default function () {
     getCart();
 
 
-    const getAllAddress = http.get(`${baseUrl}:3002/users/v1/profile/all-addresses`, { headers });
+    const getAllAddress = http.get(`${baseUrl}/users/v1/profile/all-addresses`, { headers });
     if (getAllAddress.json().length > 0) {
         let index = generateRandomIndex(getAllAddress.json().length - 1)
         Address = getAllAddress.json()[index]
@@ -237,7 +244,7 @@ export default function () {
 
 
     //----------------------------------------------------------------
-    const getCartValue = http.get(`${baseUrl}:3020/catalog/v1/cart`, {
+    const getCartValue = http.get(`${baseUrl}/catalog/v1/cart`, {
         headers,
     });
 
@@ -254,7 +261,7 @@ export default function () {
             "contactNumber": "6362387858",
             "customerName": "Saloni Jain"
         })
-        const AddressResponse = http.post(`${baseUrl}:3002/users/v1/profile/address`, AddressPayload, {
+        const AddressResponse = http.post(`${baseUrl}/users/v1/profile/address`, AddressPayload, {
             headers,
         });
         Address = AddressResponse.json()[0];
@@ -288,10 +295,10 @@ export default function () {
     })
 
 
-    const placeOrderResponse = http.post(`${baseUrl}:3012/orders/v1/order-management/place-order?paymentRequired=${paymentRequired}`, placeOrderpayload, { headers });
+    const placeOrderResponse = http.post(`${baseUrl}/orders/v1/order-management/place-order?paymentRequired=${paymentRequired}`, placeOrderpayload, { headers });
     check(placeOrderResponse, {
         'place Order endpoint status is 201': (res) => {
-            console.log(res.body);return res.status === 201
+          return res.status === 201
         }
     });
 
