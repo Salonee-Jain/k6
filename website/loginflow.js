@@ -4,8 +4,8 @@ import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-     vus: 500, 
-    iterations: 500,
+     vus: 900, 
+    iterations: 900,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
     }
