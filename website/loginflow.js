@@ -29,6 +29,7 @@ export default function () {
             return res.status === 201 }
     });
 
+
     //console.log(sendOtpResponse.body)
 
     const verifyPayload = JSON.stringify({
@@ -44,7 +45,9 @@ export default function () {
         XAccessToken = verifyOtp.headers['X-Access-Token'];
         headers = { 'Content-Type': 'application/json', 'X-Access-Token': XAccessToken }
     }
-    console.log(verifyOtp.body);
+    if(verifyOtp.status >= 300 && verifyOtp.status < 200){
+        console.log(verifyOtp.body)
+    }
     check(verifyOtp, {
         'otp verified': (res) => { 
             return res.status === 201
