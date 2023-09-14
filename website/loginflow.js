@@ -4,8 +4,8 @@ import { generateRandomMobileNumber } from '../helper.js'
 
 
 export let options = {
-     vus: 900, 
-    iterations: 900,
+     vus: 1000, 
+    iterations: 1000,
      thresholds: {
         'http_req_receiving': ['p(95)<300']
     }
@@ -28,9 +28,11 @@ export default function () {
         'otp sent': (res) => {
             return res.status === 201 }
     });
+    if(sendOtpResponse.status >= 300 && sendOtpResponse.status < 200){
+        console.log(sendOtpResponse.body)
+    }
 
-
-    //console.log(sendOtpResponse.body)
+    
 
     const verifyPayload = JSON.stringify({
         "mobile":mobileNumber,
@@ -57,6 +59,9 @@ export default function () {
 
 
     const logoutResponse = http.post(`${baseUrl}/users/v1/public/logout`, JSON.stringify({}),{ headers});
+    if(logoutResponse.status >= 300 &&logoutResponse.status < 200){
+        console.log(logoutResponse.body)
+    }
     check(logoutResponse, {
         'Logout endpoint status is 201': (res) => {return res.status === 201}
     });
