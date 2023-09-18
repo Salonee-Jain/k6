@@ -1,6 +1,7 @@
 import http from "k6/http";
 import { sleep, check } from "k6";
 import { generateRandomMobileNumber } from "../helper.js";
+import { Counter } from 'k6/metrics';
 
 export let options = {
     vus: 5000,
@@ -9,6 +10,8 @@ export let options = {
         http_req_receiving: ["p(95)<300"],
     },
 };
+
+const allErrors = new Counter('error_counter');
 
 const baseUrl = "https://antara-dev.in";
 let headers = { "Content-Type": "application/json" };
@@ -31,6 +34,7 @@ export default function () {
         sendOtpResponse.status >= 300 ||
         sendOtpResponse.status < 200
     ) {
+        error_counter.add(1, {tag: sendOtpResponse.json().message})
         console.log("Send OTP", sendOtpResponse.body);
     }
     check(sendOtpResponse, {
@@ -59,6 +63,7 @@ export default function () {
             "X-Access-Token": XAccessToken,
         };
     }else{
+        error_counter.add(1, {tag: verifyOtp.json().message})
         console.log("Verify Otp", verifyOtp.body);
     }
 
@@ -74,6 +79,7 @@ const logoutResponse = http.post(
     { headers }
 );
 if (logoutResponse.status >= 300 || logoutResponse.status < 200) {
+    error_counter.add(1, {tag: logoutResponse.json().message})
     console.log(logoutResponse.body);
 }
 check(logoutResponse, {
