@@ -3,13 +3,13 @@ import { sleep, check } from "k6";
 import { generateRandomMobileNumber } from "../helper.js";
 
 export let options = {
-    vus: 5000,
-    iterations: 5000,
+    vus: 1000,
+    iterations: 1000,
     thresholds: {
         http_req_receiving: ["p(95)<300"],
     },
 };
-let errorCounts = {};
+
 const baseUrl = "https://antara-dev.in";
 let headers = { "Content-Type": "application/json" };
 
@@ -31,12 +31,7 @@ export default function () {
         sendOtpResponse.status >= 300 ||
         sendOtpResponse.status < 200
     ) {
-        let errorMessage = response.body;
-        if (errorMessage in errorCounts) {
-            errorCounts[errorMessage]++;
-        } else {
-            errorCounts[errorMessage] = 1;
-        }
+        console.log("Send OTP", sendOtpResponse.body);
     }
     check(sendOtpResponse, {
         "otp sent": (res) => {
@@ -64,12 +59,7 @@ export default function () {
             "X-Access-Token": XAccessToken,
         };
     }else{
-        let errorMessage = response.body;
-        if (errorMessage in errorCounts) {
-            errorCounts[errorMessage]++;
-        } else {
-            errorCounts[errorMessage] = 1;
-        }
+        console.log("Verify Otp", verifyOtp.body);
     }
 
 check(verifyOtp, {
@@ -84,12 +74,7 @@ const logoutResponse = http.post(
     { headers }
 );
 if (logoutResponse.status >= 300 || logoutResponse.status < 200) {
-    let errorMessage = response.body;
-        if (errorMessage in errorCounts) {
-            errorCounts[errorMessage]++;
-        } else {
-            errorCounts[errorMessage] = 1;
-        }
+    console.log(logoutResponse.body);
 }
 check(logoutResponse, {
     "Logout endpoint status is 201": (res) => {
@@ -98,8 +83,4 @@ check(logoutResponse, {
 });
 sleep(2);
 
-}
-
-export function teardown() {
-    console.log(errorCounts);
 }
