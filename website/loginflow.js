@@ -3,8 +3,8 @@ import { sleep, check } from "k6";
 import { generateRandomMobileNumber } from "../helper.js";
 
 export let options = {
-    vus: 1000,
-    iterations: 1000,
+    vus: 5000,
+    iterations: 5000,
     thresholds: {
         http_req_receiving: ["p(95)<300"],
     },
