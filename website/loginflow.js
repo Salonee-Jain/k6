@@ -4,8 +4,8 @@ import { generateRandomMobileNumber } from "../helper.js";
 import { Counter } from 'k6/metrics';
 
 export let options = {
-    vus: 50,
-    iterations: 50,
+    vus: 5000,
+    iterations: 5000,
     thresholds: {
         http_req_receiving: ["p(95)<300"],
     },
