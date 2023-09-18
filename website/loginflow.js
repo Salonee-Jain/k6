@@ -3,13 +3,13 @@ import { sleep, check } from "k6";
 import { generateRandomMobileNumber } from "../helper.js";
 
 export let options = {
-    vus: 50,
-    iterations: 50,
+    vus: 5000,
+    iterations: 5000,
     thresholds: {
         http_req_receiving: ["p(95)<300"],
     },
 };
-
+let errorCounts = {};
 const baseUrl = "https://antara-dev.in";
 let headers = { "Content-Type": "application/json" };
 
@@ -18,6 +18,7 @@ let XAccessToken;
 export default function () {
     const mobileNumber = generateRandomMobileNumber();
     const sentPayload = JSON.stringify({
+        name: mobileNumber+"name",
         mobile: mobileNumber,
     });
 
@@ -30,7 +31,12 @@ export default function () {
         sendOtpResponse.status >= 300 ||
         sendOtpResponse.status < 200
     ) {
-        console.log("Send OTP", sendOtpResponse.body);
+        let errorMessage = response.body;
+        if (errorMessage in errorCounts) {
+            errorCounts[errorMessage]++;
+        } else {
+            errorCounts[errorMessage] = 1;
+        }
     }
     check(sendOtpResponse, {
         "otp sent": (res) => {
@@ -58,7 +64,12 @@ export default function () {
             "X-Access-Token": XAccessToken,
         };
     }else{
-        console.log("Verify Otp", verifyOtp.body);
+        let errorMessage = response.body;
+        if (errorMessage in errorCounts) {
+            errorCounts[errorMessage]++;
+        } else {
+            errorCounts[errorMessage] = 1;
+        }
     }
 
 check(verifyOtp, {
@@ -73,7 +84,12 @@ const logoutResponse = http.post(
     { headers }
 );
 if (logoutResponse.status >= 300 || logoutResponse.status < 200) {
-    console.log(logoutResponse.body);
+    let errorMessage = response.body;
+        if (errorMessage in errorCounts) {
+            errorCounts[errorMessage]++;
+        } else {
+            errorCounts[errorMessage] = 1;
+        }
 }
 check(logoutResponse, {
     "Logout endpoint status is 201": (res) => {
@@ -82,4 +98,8 @@ check(logoutResponse, {
 });
 sleep(2);
 
+}
+
+export function teardown() {
+    console.log(errorCounts);
 }
