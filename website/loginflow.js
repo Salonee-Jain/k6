@@ -5,8 +5,8 @@ import { Counter } from "k6/metrics";
 import { SharedArray } from 'k6/data';
 
 export let options = {
-  vus: 1000,
-  iterations: 1000,
+  vus: 5000,
+  iterations: 5000,
   thresholds: {
     http_req_receiving: ["p(95)<300"],
   },
